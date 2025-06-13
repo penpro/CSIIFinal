@@ -85,12 +85,25 @@ public class UnitCircleApp extends Application {
         DEGREES, RADIANS, SIN, COS, TAN
     }
 
+    /** Defines different application modes for the app. */
+    public enum AppMode {
+        EXPLORATION,
+        UNIT_CIRCLE,
+        SPECIAL_TRIANGLES
+    }
+
+    // sets default function mode to degrees
     private AngleDisplayMode currentMode = AngleDisplayMode.DEGREES;
+    // function mode selector combo box and label
     private final Label functionLabel = new Label("FUNCTION");
     private final ComboBox<String> modeSelector = new ComboBox<>();
+    // game mode selector combo box and label
     private final Label modeLabel = new Label("MODE");
     private final ComboBox<String> modeComboBox = new ComboBox<>();
-    private String currentAppMode = "Exploration";
+    // sets current game mode to exploration via the enumerator
+    private AppMode currentAppMode = AppMode.EXPLORATION;
+
+    // array lists for the buttons and lines for the different angles
     private final List<Button> buttons = new ArrayList<>();
     private final List<Line> lines = new ArrayList<>();
 
@@ -145,17 +158,18 @@ public class UnitCircleApp extends Application {
 
         // Common styling
         for (Rectangle r : List.of(quadrantIOverlay, quadrantIIOverlay, quadrantIIIOverlay, quadrantIVOverlay)) {
-            r.setFill(Color.rgb(0, 0, 0, 0.3));
+            r.setFill(Color.rgb(0, 0, 0, 0.4));
             r.setMouseTransparent(true);
             r.setVisible(false);
         }
 
         // adds the overlays as children of root
         for (Rectangle r : List.of(quadrantIOverlay, quadrantIIOverlay, quadrantIIIOverlay, quadrantIVOverlay)) {
-            r.setFill(Color.rgb(0, 0, 0, 0.3));
+            r.setFill(Color.rgb(0, 0, 0, 0.4));
             r.setMouseTransparent(true);
             r.setVisible(false);
         }
+
         overlayPane.getChildren().addAll(
                 quadrantIOverlay, quadrantIIOverlay, quadrantIIIOverlay, quadrantIVOverlay
         );
@@ -187,7 +201,14 @@ public class UnitCircleApp extends Application {
 
             // Handle button clicks in Game mode
             btn.setOnAction(e -> {
-                if (!currentAppMode.equals("Game")) return;
+                // if you're in triangle mode, call the associated triangle
+                if (currentAppMode == AppMode.SPECIAL_TRIANGLES) {
+                    SpecialTriangle.showTriangleForAngle(btnAngle);
+                    return;
+                }
+
+                // if you're in explore mode (!unit circle) don't do anything
+                if (currentAppMode != AppMode.UNIT_CIRCLE) return;
 
                 String expectedLabel;
                 switch (currentMode) {
@@ -210,7 +231,7 @@ public class UnitCircleApp extends Application {
                 } else {
                     updateScore(-1);
                     flashCircle(INCORRECT_COLOR, false);
-                    missCounts.put(currentTargetAngle, missCounts.getOrDefault(currentTargetAngle, 0) + 1);
+                    missCounts.put(currentTargetAngle, missCounts.getOrDefault(currentTargetAngle, 0) + 10);
                     System.out.println("Miss counts: " + missCounts);
                 }
             });
@@ -255,7 +276,7 @@ public class UnitCircleApp extends Application {
                 case "tan(x)" -> currentMode = AngleDisplayMode.TAN;
             }
             updateButtonLabels();
-            if (currentAppMode.equals("Game")) pickNewTargetAngle();
+            if (currentAppMode == AppMode.UNIT_CIRCLE) pickNewTargetAngle();
         });
         root.getChildren().add(modeSelector);
 
@@ -264,7 +285,7 @@ public class UnitCircleApp extends Application {
         modeLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: white;");
         root.getChildren().add(modeLabel);
 
-        modeComboBox.getItems().addAll("Exploration", "Game");
+        modeComboBox.getItems().addAll("Exploration", "Unit Circle", "Special Triangles");
         modeComboBox.setValue("Exploration");
         modeComboBox.setStyle("-fx-font-size: 14px;");
         modeComboBox.setFocusTraversable(false);
@@ -279,8 +300,14 @@ public class UnitCircleApp extends Application {
 
         // Mode switching logic
         modeComboBox.setOnAction(e -> {
-            currentAppMode = modeComboBox.getValue();
-            if (currentAppMode.equals("Game")) {
+            String selected = modeComboBox.getValue();
+            switch (selected) {
+                case "Exploration" -> currentAppMode = AppMode.EXPLORATION;
+                case "Unit Circle" -> currentAppMode = AppMode.UNIT_CIRCLE;
+                case "Special Triangles" -> currentAppMode = AppMode.SPECIAL_TRIANGLES;
+            }
+
+            if (currentAppMode == AppMode.UNIT_CIRCLE) {
                 endGameButton.setVisible(true);
                 promptLabel.setVisible(false);
                 startGameButton.setVisible(true);
@@ -291,6 +318,7 @@ public class UnitCircleApp extends Application {
                 promptLabel.setVisible(false);
                 startGameButton.setVisible(false);
             }
+
             updateButtonLabels();
             updatePromptVisibility();
         });
@@ -359,7 +387,7 @@ public class UnitCircleApp extends Application {
      * Used to show and hide the prompt for a given game mode and makes sure it checks centering
      */
     private void updatePromptVisibility() {
-        boolean shouldShow = currentAppMode.equals("Game") && !startGameButton.isVisible();
+        boolean shouldShow = (currentAppMode == AppMode.UNIT_CIRCLE) && !startGameButton.isVisible();
         promptLabel.setVisible(shouldShow);
         if (shouldShow) forcePromptCentering();
     }
@@ -494,7 +522,7 @@ public class UnitCircleApp extends Application {
         for (int i = 0; i < ANGLES.length; i++) {
             Button btn = buttons.get(i);
 
-            if (currentAppMode.equals("Game")) {
+            if (currentAppMode == AppMode.UNIT_CIRCLE) {
                 btn.setText("x");
                 continue;
             }
@@ -511,7 +539,7 @@ public class UnitCircleApp extends Application {
      * Picks a new target angle for the game mode and updates the prompt label.
      */
     private void pickNewTargetAngle() {
-        if (!currentAppMode.equals("Game")) return;
+        if (currentAppMode != AppMode.UNIT_CIRCLE) return;
 
         // Weighted selection based on miss counts
         List<Integer> weightedAngles = new ArrayList<>();
@@ -658,7 +686,7 @@ public class UnitCircleApp extends Application {
     }
 
     private void updateQuadrantOverlaysForSin() {
-        if (currentMode != AngleDisplayMode.SIN || !currentAppMode.equals("Game")) {
+        if (currentMode != AngleDisplayMode.SIN || !(currentAppMode == AppMode.UNIT_CIRCLE)) {
             showOnlyQuadrants(1, 2, 3, 4); // show all
             return;
         }
@@ -675,7 +703,7 @@ public class UnitCircleApp extends Application {
     }
 
     private void updateQuadrantOverlaysForCos() {
-        if (currentMode != AngleDisplayMode.COS || !currentAppMode.equals("Game")) {
+        if (currentMode != AngleDisplayMode.COS || !(currentAppMode == AppMode.UNIT_CIRCLE)) {
             showOnlyQuadrants(1, 2, 3, 4);
             return;
         }
@@ -692,7 +720,7 @@ public class UnitCircleApp extends Application {
     }
 
     private void updateQuadrantOverlaysForTan() {
-        if (currentMode != AngleDisplayMode.TAN || !currentAppMode.equals("Game")) {
+        if (currentMode != AngleDisplayMode.TAN || !(currentAppMode == AppMode.UNIT_CIRCLE)) {
             showOnlyQuadrants(1, 2, 3, 4); // show all
             return;
         }
