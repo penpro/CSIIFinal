@@ -108,75 +108,56 @@ public class UnitCircleApp extends Application {
     private final List<Line> lines = new ArrayList<>();
 
     /**
-     * JavaFX application entry point.
-     * @param primaryStage the primary window for this application
+     * JavaFX application entry point. Initializes the UI components, event handlers,
+     * and game logic for the Unit Circle educational app.
+     *
+     * @param primaryStage the primary window for this JavaFX application
      */
     @Override
     public void start(Stage primaryStage) {
+        // Set up root container
         Pane root = new Pane();
         root.setStyle("-fx-background-color: #808080;");
 
-        // makes the big circle and makes the clip mask from it
+        // Create the main unit circle
         circle.setFill(Color.CORNFLOWERBLUE);
         root.getChildren().add(circle);
+
+        // Clip mask for overlays (so overlays only cover the circle)
         Circle clipCircle = new Circle();
         clipCircle.radiusProperty().bind(circle.radiusProperty());
         clipCircle.centerXProperty().bind(circle.centerXProperty());
         clipCircle.centerYProperty().bind(circle.centerYProperty());
-        overlayPane.setClip(clipCircle);  // Apply clip only to overlays
+        overlayPane.setClip(clipCircle);
 
-        // Add overlays to dim incorrect half for sin(x)
-        // All overlays should be sized at half radius
+        // Calculate quadrant boundaries
         double halfRadius = circle.getRadius();
         double cx = circle.getCenterX();
         double cy = circle.getCenterY();
         root.getChildren().add(overlayPane);
 
-        // Quadrant I (top-right)
+        // Position quadrant overlays
         quadrantIOverlay.setX(cx);
         quadrantIOverlay.setY(cy - halfRadius);
-        quadrantIOverlay.setWidth(halfRadius);
-        quadrantIOverlay.setHeight(halfRadius);
-
-        // Quadrant II (top-left)
         quadrantIIOverlay.setX(cx - halfRadius);
         quadrantIIOverlay.setY(cy - halfRadius);
-        quadrantIIOverlay.setWidth(halfRadius);
-        quadrantIIOverlay.setHeight(halfRadius);
-
-        // Quadrant III (bottom-left)
         quadrantIIIOverlay.setX(cx - halfRadius);
         quadrantIIIOverlay.setY(cy);
-        quadrantIIIOverlay.setWidth(halfRadius);
-        quadrantIIIOverlay.setHeight(halfRadius);
-
-        // Quadrant IV (bottom-right)
         quadrantIVOverlay.setX(cx);
         quadrantIVOverlay.setY(cy);
-        quadrantIVOverlay.setWidth(halfRadius);
-        quadrantIVOverlay.setHeight(halfRadius);
 
-        // Common styling
         for (Rectangle r : List.of(quadrantIOverlay, quadrantIIOverlay, quadrantIIIOverlay, quadrantIVOverlay)) {
-            r.setFill(Color.rgb(0, 0, 0, 0.4));
+            r.setWidth(halfRadius);
+            r.setHeight(halfRadius);
+            r.setFill(Color.rgb(0, 0, 0, 0.4));     // semi-transparent black
             r.setMouseTransparent(true);
             r.setVisible(false);
         }
 
-        // adds the overlays as children of root
-        for (Rectangle r : List.of(quadrantIOverlay, quadrantIIOverlay, quadrantIIIOverlay, quadrantIVOverlay)) {
-            r.setFill(Color.rgb(0, 0, 0, 0.4));
-            r.setMouseTransparent(true);
-            r.setVisible(false);
-        }
-
-        overlayPane.getChildren().addAll(
-                quadrantIOverlay, quadrantIIOverlay, quadrantIIIOverlay, quadrantIVOverlay
-        );
-        // sets to overlays to invisible for now
+        overlayPane.getChildren().addAll(quadrantIOverlay, quadrantIIOverlay, quadrantIIIOverlay, quadrantIVOverlay);
         overlayPane.setVisible(false);
 
-        // Create radial lines for the unit circle
+        // Create radial lines from origin to each angle
         for (int angle : ANGLES) {
             Line line = new Line();
             line.setStroke(Color.BLACK);
@@ -185,54 +166,44 @@ public class UnitCircleApp extends Application {
             root.getChildren().add(line);
         }
 
-        // score
+        // Score display
         scoreLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: white;");
         scoreLabel.setVisible(false);
         root.getChildren().add(scoreLabel);
 
-        // Create angle buttons and assign their logic
+        // Create interactive angle buttons
         for (int angle : ANGLES) {
             Button btn = new Button(angle + "°");
-            btn.setStyle("-fx-font-size: 14px; -fx-padding: 8 12 8 12;");
-            btn.setPrefWidth(75);
-            btn.setPrefHeight(45);
+            btn.setPrefSize(75, 45);
             btn.setFocusTraversable(false);
+            btn.setStyle("-fx-font-size: 14px;");
             final int btnAngle = angle;
 
-            // Handle button clicks in Game mode
             btn.setOnAction(e -> {
-                // if you're in triangle mode, call the associated triangle
                 if (currentAppMode == AppMode.SPECIAL_TRIANGLES) {
                     SpecialTriangle.showTriangleForAngle(btnAngle);
                     return;
                 }
 
-                // if you're in explore mode (!unit circle) don't do anything
                 if (currentAppMode != AppMode.UNIT_CIRCLE) return;
 
-                String expectedLabel;
-                switch (currentMode) {
-                    case DEGREES -> expectedLabel = btnAngle + "°";
-                    case RADIANS -> expectedLabel = getPiFraction(btnAngle);
-                    case SIN -> expectedLabel = "sin: " + SIN_VALUES.getOrDefault(btnAngle, "?");
-                    case COS -> expectedLabel = "cos: " + COS_VALUES.getOrDefault(btnAngle, "?");
-                    case TAN -> expectedLabel = "tan: " + TAN_VALUES.getOrDefault(btnAngle, "?");
-                    default -> expectedLabel = "?";
-                }
+                String expectedLabel = switch (currentMode) {
+                    case DEGREES -> btnAngle + "°";
+                    case RADIANS -> getPiFraction(btnAngle);
+                    case SIN -> "sin: " + SIN_VALUES.getOrDefault(btnAngle, "?");
+                    case COS -> "cos: " + COS_VALUES.getOrDefault(btnAngle, "?");
+                    case TAN -> "tan: " + TAN_VALUES.getOrDefault(btnAngle, "?");
+                };
 
                 if (btnAngle == currentTargetAngle) {
                     updateScore(1);
                     flashCircle(CORRECT_COLOR, true);
                     pickNewTargetAngle();
-                    int currentMisses = missCounts.getOrDefault(btnAngle, 0);
-                    if (currentMisses > 0) {
-                        missCounts.put(btnAngle, currentMisses - 1);
-                    }
+                    missCounts.put(btnAngle, Math.max(0, missCounts.getOrDefault(btnAngle, 0) - 1));
                 } else {
                     updateScore(-1);
                     flashCircle(INCORRECT_COLOR, false);
                     missCounts.put(currentTargetAngle, missCounts.getOrDefault(currentTargetAngle, 0) + 10);
-                    System.out.println("Miss counts: " + missCounts);
                 }
             });
 
@@ -240,146 +211,123 @@ public class UnitCircleApp extends Application {
             root.getChildren().add(btn);
         }
 
-        // Listen for window resize to update layout
+        // Adjust layout on window resize
         root.widthProperty().addListener((obs, oldVal, newVal) -> updateLayout(root));
         root.heightProperty().addListener((obs, oldVal, newVal) -> updateLayout(root));
 
-        // window and title
+        // Initialize main scene
         Scene scene = new Scene(root, 1000, 1000);
         primaryStage.setTitle("Unit Circle");
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        // Perform layout after stage is shown
-        Platform.runLater(() -> updateLayout(root));
+        Platform.runLater(() -> updateLayout(root)); // Final layout after window shows
 
-        // small inner circle
+        // Add small gray inner circle
         innerCircle.setFill(Color.GRAY);
         root.getChildren().add(innerCircle);
 
-        // UI labels and combo boxes
+        // UI labels and dropdowns
         promptLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: white;");
         root.getChildren().add(promptLabel);
 
         functionLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: white;");
         root.getChildren().add(functionLabel);
 
-        // function combo box
         modeSelector.getItems().addAll("Degrees", "Radians", "sin(x)", "cos(x)", "tan(x)");
         modeSelector.setValue("Degrees");
         modeSelector.setOnAction(e -> {
-            switch (modeSelector.getValue()) {
-                case "Degrees" -> currentMode = AngleDisplayMode.DEGREES;
-                case "Radians" -> currentMode = AngleDisplayMode.RADIANS;
-                case "sin(x)" -> currentMode = AngleDisplayMode.SIN;
-                case "cos(x)" -> currentMode = AngleDisplayMode.COS;
-                case "tan(x)" -> currentMode = AngleDisplayMode.TAN;
-            }
+            currentMode = switch (modeSelector.getValue()) {
+                case "Degrees" -> AngleDisplayMode.DEGREES;
+                case "Radians" -> AngleDisplayMode.RADIANS;
+                case "sin(x)" -> AngleDisplayMode.SIN;
+                case "cos(x)" -> AngleDisplayMode.COS;
+                case "tan(x)" -> AngleDisplayMode.TAN;
+                default -> currentMode;
+            };
             updateButtonLabels();
             if (currentAppMode == AppMode.UNIT_CIRCLE) pickNewTargetAngle();
         });
         root.getChildren().add(modeSelector);
 
-
-        // mode combo box
         modeLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: white;");
         root.getChildren().add(modeLabel);
 
         modeComboBox.getItems().addAll("Exploration", "Unit Circle", "Special Triangles");
         modeComboBox.setValue("Exploration");
+        modeComboBox.setPrefWidth(120);
+        modeSelector.setPrefWidth(120);
         modeComboBox.setStyle("-fx-font-size: 14px;");
-        modeComboBox.setFocusTraversable(false);
+        modeSelector.setStyle("-fx-font-size: 14px;");
         root.getChildren().add(modeComboBox);
 
-        double comboBoxWidth = 120;
-        modeComboBox.setPrefWidth(comboBoxWidth);
-        modeSelector.setPrefWidth(comboBoxWidth);
-        String comboStyle = "-fx-font-size: 14px;";
-        modeComboBox.setStyle(comboStyle);
-        modeSelector.setStyle(comboStyle);
-
-        // Mode switching logic
         modeComboBox.setOnAction(e -> {
-            String selected = modeComboBox.getValue();
-            switch (selected) {
-                case "Exploration" -> currentAppMode = AppMode.EXPLORATION;
-                case "Unit Circle" -> currentAppMode = AppMode.UNIT_CIRCLE;
-                case "Special Triangles" -> currentAppMode = AppMode.SPECIAL_TRIANGLES;
-            }
+            currentAppMode = switch (modeComboBox.getValue()) {
+                case "Exploration" -> AppMode.EXPLORATION;
+                case "Unit Circle" -> AppMode.UNIT_CIRCLE;
+                case "Special Triangles" -> AppMode.SPECIAL_TRIANGLES;
+                default -> currentAppMode;
+            };
 
-            if (currentAppMode == AppMode.UNIT_CIRCLE) {
-                endGameButton.setVisible(true);
-                promptLabel.setVisible(false);
-                startGameButton.setVisible(true);
-                stopTimer();
-            } else {
-                endGameButton.setVisible(false);
-                stopTimer();
-                promptLabel.setVisible(false);
-                startGameButton.setVisible(false);
-            }
+            boolean isGame = currentAppMode == AppMode.UNIT_CIRCLE;
+            startGameButton.setVisible(isGame);
+            endGameButton.setVisible(isGame);
+            promptLabel.setVisible(false);
+            stopTimer();
 
             updateButtonLabels();
             updatePromptVisibility();
         });
 
-        // start game button
         startGameButton.setStyle("-fx-font-size: 16px; -fx-padding: 10 20 10 20;");
         startGameButton.setFocusTraversable(false);
         startGameButton.setVisible(false);
-        // do things when pressed
         startGameButton.setOnAction(e -> {
             startGameButton.setVisible(false);
             promptLabel.setVisible(true);
             startTimer();
             pickNewTargetAngle();
             score = 0;
-            updateScore(0);  // refresh label
+            updateScore(0);
             scoreLabel.setVisible(true);
-            scoreHistoryManager.clear();        // start fresh
+            scoreHistoryManager.clear();
             historyButton.setVisible(true);
             overlayPane.setVisible(true);
         });
         root.getChildren().add(startGameButton);
 
-        // Ensure correct prompt visibility on startup and creates a listener to change the prompt centering on update
         updatePromptVisibility();
         promptLabel.textProperty().addListener((obs, oldText, newText) -> forcePromptCentering());
 
-        // initialize the timer
         timerLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: white;");
-        timerLabel.setLayoutY(10); // top of screen
+        timerLabel.setLayoutY(10);
         timerLabel.setVisible(false);
         root.getChildren().add(timerLabel);
 
-        // initialize the history screen
         historyButton.setStyle("-fx-font-size: 14px;");
         historyButton.setFocusTraversable(false);
         historyButton.setOnAction(e -> scoreHistoryManager.showPopup());
         historyButton.setVisible(false);
         root.getChildren().add(historyButton);
 
-        // end game button
         endGameButton.setStyle("-fx-font-size: 14px;");
         endGameButton.setFocusTraversable(false);
         endGameButton.setVisible(false);
         endGameButton.setOnAction(e -> resetGame());
         root.getChildren().add(endGameButton);
 
-        // high score button
         highScoresButton.setStyle("-fx-font-size: 14px;");
         highScoresButton.setFocusTraversable(false);
         highScoresButton.setOnAction(e -> highScoreManager.showHighScoresPopup());
         highScoresButton.setVisible(true);
         root.getChildren().add(highScoresButton);
 
-        // resets the weighting factors
+        // Initialize missCounts for weighted learning
         for (int angle : ANGLES) {
             missCounts.put(angle, 0);
         }
-
-
     }
+
 
 
 
@@ -606,6 +554,15 @@ public class UnitCircleApp extends Application {
         launch(args);
     }
 
+    /**
+     * Starts a countdown timer for the game session.
+     * <p>
+     * Initializes the timer with 120 seconds and updates the timer label to display the
+     * initial time. The method creates a {@code Timeline} that decrements the remaining
+     * time every second and updates the display accordingly. When the timer reaches zero,
+     * it stops the countdown, displays a final message with the score, and attempts to
+     * save the high score using the current game mode.
+     */
     private void startTimer() {
         secondsRemaining = 120;
         timerLabel.setVisible(true);
@@ -618,13 +575,20 @@ public class UnitCircleApp extends Application {
             if (secondsRemaining <= 0) {
                 countdownTimer.stop();
                 promptLabel.setText("Time's up! Final Score: " + score);
-                highScoreManager.trySaveScore(score, currentMode.name());
+                Platform.runLater(() -> highScoreManager.trySaveScore(score, currentMode.name()));
             }
         }));
         countdownTimer.setCycleCount(Timeline.INDEFINITE);
         countdownTimer.play();
     }
 
+    /**
+     * Stops the countdown timer if it is running and hides related UI elements.
+     * <p>
+     * This method halts the ongoing timer by calling {@code stop()} on the
+     * {@code countdownTimer}, if it is not {@code null}. It also hides the timer label,
+     * score label, and history button to reflect the paused or ended game state.
+     */
     private void stopTimer() {
         if (countdownTimer != null) {
             countdownTimer.stop();
@@ -634,6 +598,14 @@ public class UnitCircleApp extends Application {
         historyButton.setVisible(false);
     }
 
+    /**
+     * Updates the timer label with the current time remaining in minutes and seconds,
+     * and centers the label horizontally within the scene.
+     * <p>
+     * The label is formatted as "Time Left: M:SS", and repositioned based on the current
+     * scene width to ensure it's horizontally centered.
+     * This method should be called whenever {@code secondsRemaining} changes.
+     */
     private void updateTimerLabel() {
         int minutes = secondsRemaining / 60;
         int seconds = secondsRemaining % 60;
@@ -644,6 +616,14 @@ public class UnitCircleApp extends Application {
         }
     }
 
+    /**
+     * Updates the current game score by a specified delta and reflects the change in the UI.
+     * <p>
+     * This method increments (or decrements) the score by the given {@code delta}, updates the score label
+     * displayed in the user interface, and logs the result in the score history manager.
+     *
+     * @param delta the amount to add to the current score (can be negative to represent a penalty)
+     */
     private void updateScore(int delta) {
         score += delta;
         scoreLabel.setText("Score: " + score);
@@ -651,6 +631,20 @@ public class UnitCircleApp extends Application {
         scoreHistoryManager.record(delta > 0, score);
     }
 
+    /**
+     * Resets the game state to its initial configuration.
+     * <p>
+     * This method is typically called when the game ends or restarts. It performs the following actions:
+     * <ul>
+     *   <li>Saves the current score using the {@code HighScoreManager}, tagged by the current mode.</li>
+     *   <li>Stops the game timer if it's running.</li>
+     *   <li>Resets the current score and updates the score display.</li>
+     *   <li>Hides all game-related UI elements such as the score label, prompt, and control buttons.</li>
+     *   <li>Clears the score history.</li>
+     *   <li>Hides all quadrant overlays and the overlay pane.</li>
+     * </ul>
+     * This ensures the UI and internal state are ready for a new game session.
+     */
     private void resetGame() {
         highScoreManager.trySaveScore(score, currentMode.name());
         stopTimer();
@@ -669,6 +663,25 @@ public class UnitCircleApp extends Application {
         overlayPane.setVisible(false);
     }
 
+    /**
+     * Shows only the specified quadrants by hiding the overlays for all quadrants first,
+     * then making the overlays for the specified quadrants invisible.
+     * <p>
+     * This is used to visually restrict the view to certain quadrants in the unit circle,
+     * often to help users deduce sine, cosine, or tangent values based on quadrant behavior.
+     * <p>
+     * Quadrant numbering follows standard mathematical convention:
+     * <ul>
+     *   <li>1 → Quadrant I</li>
+     *   <li>2 → Quadrant II</li>
+     *   <li>3 → Quadrant III</li>
+     *   <li>4 → Quadrant IV</li>
+     * </ul>
+     *
+     * @param visibleQuadrants The quadrant numbers (1–4) to make visible. All other overlays remain shown.
+     *                         Internally, these quadrants will have their overlay visibility set to {@code false},
+     *                         revealing the quadrant content.
+     */
     private void showOnlyQuadrants(int... visibleQuadrants) {
         quadrantIOverlay.setVisible(true);
         quadrantIIOverlay.setVisible(true);
@@ -685,6 +698,21 @@ public class UnitCircleApp extends Application {
         }
     }
 
+    /**
+     * Updates the quadrant overlays for the sine display mode in the Unit Circle game.
+     * <p>
+     * When the app is in {@link AppMode#UNIT_CIRCLE} and {@link AngleDisplayMode#SIN} mode,
+     * this method restricts which quadrants are visually shown to help the user
+     * deduce the correct angle for a given sine value (y-coordinate on the unit circle).
+     * <p>
+     * Since sine is positive in Quadrants I and II, and negative in Quadrants III and IV,
+     * this method determines the correct hemisphere to display based on the target angle:
+     * <ul>
+     *   <li>If the angle is in QI or QIV (angle &lt; 90 or &gt; 270), show the right half (QI and QIV).</li>
+     *   <li>If the angle is in QII or QIII (angle ≥ 90 and ≤ 270), show the left half (QII and QIII).</li>
+     * </ul>
+     * If the app is not in the correct mode, all quadrants are shown.
+     */
     private void updateQuadrantOverlaysForSin() {
         if (currentMode != AngleDisplayMode.SIN || !(currentAppMode == AppMode.UNIT_CIRCLE)) {
             showOnlyQuadrants(1, 2, 3, 4); // show all
@@ -702,6 +730,22 @@ public class UnitCircleApp extends Application {
         }
     }
 
+    /**
+     * Updates the quadrant overlays based on the current angle when in COS mode.
+     * <p>
+     * In the Unit Circle game mode with the display set to COS, this method determines
+     * whether to show the left or right half of the circle to visually restrict
+     * user choices based on the cosine value.
+     * <p>
+     * Cosine (x-coordinate on the unit circle) is positive in Quadrants I and IV,
+     * and negative in Quadrants II and III. This method uses that rule to determine
+     * which quadrants to display:
+     * <ul>
+     *   <li>If the angle is between 0° and 180° inclusive, it shows Quadrants I and II (right side).</li>
+     *   <li>Otherwise, it shows Quadrants III and IV (left side).</li>
+     * </ul>
+     * If the mode is not COS or not in UNIT_CIRCLE app mode, all four quadrants are shown.
+     */
     private void updateQuadrantOverlaysForCos() {
         if (currentMode != AngleDisplayMode.COS || !(currentAppMode == AppMode.UNIT_CIRCLE)) {
             showOnlyQuadrants(1, 2, 3, 4);
@@ -719,6 +763,19 @@ public class UnitCircleApp extends Application {
         }
     }
 
+    /**
+     * Updates the quadrant overlays on the unit circle visualization when in TAN mode.
+     * <p>
+     * This method ensures that only the relevant quadrants are visible based on the target angle.
+     * Tangent is undefined when {@code cos(θ) = 0}, and is only valid where cosine is non-zero.
+     * To help disambiguate which angle is correct when two angles share the same tangent value,
+     * this method restricts quadrant visibility:
+     * <ul>
+     *     <li>If the angle is in QI or QIV (i.e., angle &lt; 90 or angle &gt; 270), only quadrants 1 and 4 are shown.</li>
+     *     <li>If the angle is in QII or QIII (i.e., 90 ≤ angle ≤ 270), only quadrants 2 and 3 are shown.</li>
+     *     <li>If the app is not in {@code AppMode.UNIT_CIRCLE} or the angle display mode is not {@code TAN}, all quadrants are shown.</li>
+     * </ul>
+     */
     private void updateQuadrantOverlaysForTan() {
         if (currentMode != AngleDisplayMode.TAN || !(currentAppMode == AppMode.UNIT_CIRCLE)) {
             showOnlyQuadrants(1, 2, 3, 4); // show all
@@ -736,6 +793,18 @@ public class UnitCircleApp extends Application {
         }
     }
 
+    /**
+     * Applies a decay to the miss counts for all tracked angles.
+     * <p>
+     * This method reduces the recorded number of misses for each angle by 1,
+     * down to a minimum of 0. It ensures that previously missed angles gradually
+     * become less weighted over time, assuming they are answered correctly later.
+     * This helps balance the angle selection process so that users are not indefinitely
+     * penalized for earlier mistakes.
+     * <p>
+     * The list of angles affected is defined in the {@code ANGLES} collection,
+     * and their associated miss counts are stored in the {@code missCounts} map.
+     */
     private void decayMissCounts() {
         for (int angle : ANGLES) {
             missCounts.put(angle, Math.max(0, missCounts.get(angle) - 1));
