@@ -1,0 +1,82 @@
+@startuml UnitCircleApp_UML
+
+' Define enums
+enum AngleDisplayMode {
+  DEGREES
+  RADIANS
+  SIN
+  COS
+  TAN
+}
+
+enum AppMode {
+  EXPLORATION
+  UNIT_CIRCLE
+  SPECIAL_TRIANGLES
+}
+
+class UnitCircleApp {
+  - URL correctURL
+  - URL incorrectURL
+  - AudioClip correctSound
+  - AudioClip incorrectSound
+  - int currentTargetAngle
+  - Random random
+  - Label promptLabel
+  - Button startGameButton
+  - Circle circle
+  - Circle innerCircle
+  - static Color CORRECT_COLOR
+  - static Color INCORRECT_COLOR
+  - static Color DEFAULT_COLOR
+  - Label timerLabel
+  - Timeline countdownTimer
+  - int secondsRemaining
+  - Label scoreLabel
+  - int score
+  - Button historyButton
+  - ScoreHistoryManager scoreHistoryManager
+  - Button endGameButton
+  - Button highScoresButton
+  - HighScoreManager highScoreManager
+  - Rectangle quadrantIOverlay
+  - Rectangle quadrantIIOverlay
+  - Rectangle quadrantIIIOverlay
+  - Rectangle quadrantIVOverlay
+  - Pane overlayPane
+  - Map<Integer, Integer> missCounts
+  - AngleDisplayMode currentMode
+  - Label functionLabel
+  - ComboBox<String> modeSelector
+  - Label modeLabel
+  - ComboBox<String> modeComboBox
+  - AppMode currentAppMode
+  - List<Button> buttons
+  - List<Line> lines
+
+  + void start(Stage)
+  - void updatePromptVisibility()
+  - void forcePromptCentering()
+  - void updateLayout(Pane)
+  - void updateButtonLabels()
+  - void pickNewTargetAngle()
+  - void flashCircle(Color, boolean)
+  + static void main(String[])
+  - void startTimer()
+  - void stopTimer()
+  - void updateTimerLabel()
+  - void updateScore(int)
+  - void resetGame()
+  - void showOnlyQuadrants(int...)
+  - void updateQuadrantOverlaysForSin()
+  - void updateQuadrantOverlaysForCos()
+  - void updateQuadrantOverlaysForTan()
+  - void decayMissCounts()
+}
+
+UnitCircleApp --> AngleDisplayMode
+UnitCircleApp --> AppMode
+UnitCircleApp --> ScoreHistoryManager
+UnitCircleApp --> HighScoreManager
+
+@enduml
