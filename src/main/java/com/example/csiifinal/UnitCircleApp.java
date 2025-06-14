@@ -199,7 +199,7 @@ public class UnitCircleApp extends Application {
         // Create interactive angle buttons
         for (int angle : ANGLES) {
             Button btn = new Button(angle + "°");
-            btn.setId("angle" + angle);  // Example: angle30, angle45, angle60...
+            btn.setId("angleBtn" + angle);
             btn.setPrefSize(75, 45);
             btn.setFocusTraversable(false);
             btn.setStyle("-fx-font-size: 14px;");

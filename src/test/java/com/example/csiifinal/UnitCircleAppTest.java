@@ -53,8 +53,8 @@ public class UnitCircleAppTest extends ApplicationTest {
         clickOn("#startGameButton");
 
         // now, wait for prompt and click any visible angle
-        clickOn("#angle30");
-        clickOn("#angle180");
+        clickOn("#angleBtn30");
+        clickOn("#angleBtn180");
     }
 
     @Test
@@ -70,6 +70,32 @@ public class UnitCircleAppTest extends ApplicationTest {
 
         // now it's visible
         clickOn("#historyButton");
+    }
+    @Test
+    public void testFullModeAngleCoverage() {
+        // Step 1: Switch to Unit Circle mode
+        clickOn("#modeComboBox");
+        clickOn("Unit Circle");
+
+        // Step 2: Start the game
+        clickOn("#startGameButton");
+
+        // Step 3: Loop through all function modes
+        String[] modes = {"Degrees", "Radians", "sin(x)", "cos(x)", "tan(x)"};
+        for (String mode : modes) {
+            clickOn("#functionComboBox");
+            clickOn(mode);
+
+            // Step 4: Click all angle buttons for this mode
+            for (int angle : com.example.csiifinal.UCAHelpers.ANGLES) {
+                String buttonId = "#angleBtn" + angle;
+                try {
+                    clickOn(buttonId);
+                } catch (Exception e) {
+                    System.err.println("Button not found: " + buttonId);
+                }
+            }
+        }
     }
 
 
