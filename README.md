@@ -119,7 +119,8 @@ Includes GUI testing of angle button behavior, scene initialization, and game-mo
 
 ### UML
 
-![UML Diagram](docs/uml.png)  
+![UnitCircleApp_UML](https://github.com/user-attachments/assets/689b9be7-2f71-425c-816a-1c50f7ded08c)
+
 See `docs/uml.txt` for the source PlantUML code used to generate this diagram.
 
 ---
