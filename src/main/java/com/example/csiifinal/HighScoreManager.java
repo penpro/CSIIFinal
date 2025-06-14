@@ -17,7 +17,7 @@ public class HighScoreManager {
 
     public static class HighScoreEntry {
         final int score;
-        final String initials;
+        public final String initials;
         final String timestamp;
         final String mode;
 
@@ -40,18 +40,18 @@ public class HighScoreManager {
         loadHighScores();
     }
 
-    private void loadHighScores() {
+    protected void loadHighScores() {
         highScores.clear();
         try {
-            List<String> lines = Files.readAllLines(Paths.get(HIGHSCORE_FILE));
+            List<String> lines = Files.readAllLines(Paths.get(getHighScoreFilePath()));
             for (String line : lines) {
-                String[] parts = line.split(",", -1); // use -1 to keep empty trailing fields
+                String[] parts = line.split(",", -1);
                 if (parts.length >= 3) {
                     try {
                         int score = Integer.parseInt(parts[0].trim());
                         String initials = parts[1].trim();
                         String timestamp = parts[2].trim();
-                        String mode = (parts.length >= 4) ? parts[3].trim() : "Unknown";  // fallback if no mode
+                        String mode = (parts.length >= 4) ? parts[3].trim() : "Unknown";
                         highScores.add(new HighScoreEntry(score, initials, timestamp, mode));
                     } catch (NumberFormatException ignored) {}
                 }
@@ -77,7 +77,7 @@ public class HighScoreManager {
         }
     }
 
-    private boolean isHighScore(int score) {
+    public boolean isHighScore(int score) {
         return highScores.size() < MAX_ENTRIES || score > highScores.get(highScores.size() - 1).score;
     }
 
@@ -121,5 +121,13 @@ public class HighScoreManager {
 
         alert.getDialogPane().setContent(textArea);
         alert.showAndWait();
+    }
+
+    public List<HighScoreEntry> getAllScores() {
+        return new ArrayList<>(highScores);
+    }
+
+    protected String getHighScoreFilePath() {
+        return HIGHSCORE_FILE;
     }
 }

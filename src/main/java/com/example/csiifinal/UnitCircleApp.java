@@ -14,6 +14,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.scene.media.AudioClip;
 
+import java.net.URL;
 import java.util.*;
 
 import javafx.animation.KeyFrame;
@@ -26,6 +27,22 @@ import static com.example.csiifinal.UCAHelpers.*;
  * Allows users to explore trigonometric values and practice identifying them in a game mode.
  */
 public class UnitCircleApp extends Application {
+
+    URL correctURL = getClass().getResource("/sounds/correct.wav");
+    URL incorrectURL = getClass().getResource("/sounds/incorrect.mp3");
+
+    private final AudioClip correctSound;
+    {
+        AudioClip temp = null;
+        try {
+            if (correctURL != null)
+                temp = new AudioClip(correctURL.toExternalForm());
+        } catch (Exception | Error e) {
+            System.err.println("Could not load correct sound: " + e);
+        }
+        correctSound = temp;
+    }
+    private final AudioClip incorrectSound = incorrectURL != null ? new AudioClip(incorrectURL.toExternalForm()) : null;
 
     private int currentTargetAngle = 0;
     private final Random random = new Random();
@@ -44,8 +61,8 @@ public class UnitCircleApp extends Application {
     private static final Color DEFAULT_COLOR = Color.CORNFLOWERBLUE;
 
     // sounds
-    private final AudioClip correctSound = new AudioClip(getClass().getResource("/sounds/correct.wav").toExternalForm());
-    private final AudioClip incorrectSound = new AudioClip(getClass().getResource("/sounds/incorrect.mp3").toExternalForm());
+    //private final AudioClip correctSound = new AudioClip(getClass().getResource("/sounds/correct.wav").toExternalForm());
+    //private final AudioClip incorrectSound = new AudioClip(getClass().getResource("/sounds/incorrect.mp3").toExternalForm());
 
     // timer
     private final Label timerLabel = new Label();
@@ -529,9 +546,9 @@ public class UnitCircleApp extends Application {
         circle.setFill(flashColor);
 
         // Play the appropriate sound based on whether the answer was correct
-        if (isCorrect) {
+        if (isCorrect && correctSound != null) {
             correctSound.play();
-        } else {
+        } else if (!isCorrect && incorrectSound != null) {
             incorrectSound.play();
         }
 
