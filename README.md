@@ -138,7 +138,8 @@ See `docs/uml.txt` for the source PlantUML code used to generate this diagram.
 12. Material Design UI concepts – https://m3.material.io/  
 13. Effective Java (Joshua Bloch) – Chapter on Enums and Lambdas  
 14. JavaFX Circle class – https://docs.oracle.com/javafx/2/api/javafx/scene/shape/Circle.html  
-15. JavaFX Scene Graph overview – https://openjfx.io/javadoc/17/javafx.graphics/javafx/scene/Node.html  
+15. JavaFX Scene Graph overview – https://openjfx.io/javadoc/17/javafx.graphics/javafx/scene/Node.html
+16. ChatGPT made my readme pretty because I 100% can't be bothered
 
 ---
 
