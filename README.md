@@ -55,12 +55,14 @@ mvn clean javafx:run
 
 ### Unit Circle with Overlays
 
-![Unit Circle Screenshot](images/unit_circle_overlay.png)  
+<img width="748" alt="image" src="https://github.com/user-attachments/assets/2a11d6ba-ca64-4e89-9308-1fd6846b7c8f" />
+
 *Image: Quadrants are hidden to restrict options based on sine positivity.*
 
 ### Special Triangle Display
 
-![Triangle Pop-up](images/special_triangle_popup.png)  
+<img width="748" alt="image" src="https://github.com/user-attachments/assets/728e64c5-3437-4101-855f-21b749d510af" />
+
 *Image: Special triangle rendered and rotated for Quadrant III.*
 
 ---
