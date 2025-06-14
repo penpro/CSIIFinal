@@ -3,7 +3,9 @@ package com.example.csiifinal;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextArea;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 public class ScoreHistoryManager {
@@ -47,5 +49,8 @@ public class ScoreHistoryManager {
 
         alert.getDialogPane().setContent(textArea);
         alert.showAndWait();
+    }
+    public List<String> getHistory() {
+        return new ArrayList<>(history);
     }
 }

@@ -124,6 +124,8 @@ public class UnitCircleApp extends Application {
     private final List<Button> buttons = new ArrayList<>();
     private final List<Line> lines = new ArrayList<>();
 
+
+
     /**
      * JavaFX application entry point. Initializes the UI components, event handlers,
      * and game logic for the Unit Circle educational app.
@@ -135,6 +137,12 @@ public class UnitCircleApp extends Application {
         // Set up root container
         Pane root = new Pane();
         root.setStyle("-fx-background-color: #808080;");
+
+        modeComboBox.setId("modeComboBox");
+        modeSelector.setId("functionComboBox");
+        startGameButton.setId("startGameButton");
+        historyButton.setId("historyButton");
+
 
         // Create the main unit circle
         circle.setFill(Color.CORNFLOWERBLUE);
@@ -191,6 +199,7 @@ public class UnitCircleApp extends Application {
         // Create interactive angle buttons
         for (int angle : ANGLES) {
             Button btn = new Button(angle + "°");
+            btn.setId("angle" + angle);  // Example: angle30, angle45, angle60...
             btn.setPrefSize(75, 45);
             btn.setFocusTraversable(false);
             btn.setStyle("-fx-font-size: 14px;");
