@@ -142,7 +142,7 @@ See `docs/uml.txt` for the source PlantUML code used to generate this diagram.
 13. Effective Java (Joshua Bloch) – Chapter on Enums and Lambdas  
 14. JavaFX Circle class – https://docs.oracle.com/javafx/2/api/javafx/scene/shape/Circle.html  
 15. JavaFX Scene Graph overview – https://openjfx.io/javadoc/17/javafx.graphics/javafx/scene/Node.html
-16. ChatGPT made my readme pretty because I 100% can't be bothered
+16. ChatGPT made my readme pretty because I 100% can't be bothered https://chatgpt.com/share/68534690-0388-8004-afdc-0520e14c7f80
 
 ---
 
